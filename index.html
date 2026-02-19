@@ -28,20 +28,19 @@ h1 { font-size: 2em; margin-bottom: 10px; }
   padding: 15px 25px;
   border-radius: 30px;
   border: none;
-  font-size: 1.1em;
+  font-size: 1.05em;
   cursor: pointer;
   background: white;
   color: #203a43;
 }
 
-.member-card, .vote-section {
+.member-card, .vote-section, .diary-section {
   display: none;
   background: rgba(255,255,255,0.1);
   margin: 20px;
   padding: 20px;
   border-radius: 20px;
   backdrop-filter: blur(8px);
-  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .member-card img {
@@ -49,6 +48,26 @@ h1 { font-size: 2em; margin-bottom: 10px; }
   max-width: 250px;
   border-radius: 20px;
   margin-bottom: 15px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 120px;
+  border-radius: 15px;
+  border: none;
+  padding: 10px;
+  font-family: inherit;
+  margin-top: 10px;
+}
+
+.save-btn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  background: white;
+  color: #203a43;
 }
 
 .nav-btn {
@@ -68,20 +87,39 @@ h1 { font-size: 2em; margin-bottom: 10px; }
 #nextBtn { right: 20px; }
 #homeBtn { left: 50%; transform: translateX(-50%); }
 
-.vote-section button {
-  margin: 5px;
-  padding: 10px 15px;
-  border-radius: 20px;
-  border: none;
-  cursor: pointer;
-  background: white;
-  color: #203a43;
-}
-
 .reset-btn {
   margin-top: 20px;
   background: crimson;
   color: white;
+}
+
+/* Neue Styles für Tagebuchkarten */
+#allDiaries {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+}
+
+.diary-card {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
+  border-radius: 15px;
+  padding: 15px;
+  max-width: 220px;
+  flex: 1 1 200px;
+  text-align: left;
+  transition: transform 0.2s;
+}
+
+.diary-card:hover {
+  transform: translateY(-5px);
+}
+
+.diary-card strong {
+  display: block;
+  margin-bottom: 8px;
 }
 </style>
 </head>
@@ -106,15 +144,18 @@ h1 { font-size: 2em; margin-bottom: 10px; }
 
   <button class="main-btn" onclick="startTeam()">Das Team</button>
   <button class="main-btn" onclick="showVoting()">🏆 MVP Voting</button>
+  <button class="main-btn" onclick="showDiary()">📝 Skihaserl Tagebuch</button>
 </div>
 
+<!-- TEAM -->
 <div class="member-card" id="memberCard">
   <img id="memberImg" src="">
   <h2 id="memberName"></h2>
   <p id="memberText"></p>
-  <p style="font-size:0.8em; opacity:0.7;">⬅️ Swipe links / rechts ➡️</p>
+  <p style="font-size:0.8em; opacity:0.7;">⬅ Swipe ➡</p>
 </div>
 
+<!-- VOTING -->
 <div class="vote-section" id="voteSection">
   <h2>🏆 MVP – König von St. Anton</h2>
   <div id="voteButtons"></div>
@@ -122,6 +163,17 @@ h1 { font-size: 2em; margin-bottom: 10px; }
   <button class="reset-btn" onclick="adminReset()">🔒 Admin Reset</button>
 </div>
 
+<!-- TAGEBUCH -->
+<div class="diary-section" id="diarySection">
+  <h2>📝 Skihaserl Tagebuch</h2>
+  <select id="diarySelect" onchange="loadDiary()"></select>
+  <textarea id="diaryText" placeholder="Was ist heute passiert? 🍻⛷️"></textarea>
+  <button class="save-btn" onclick="saveDiary()">Speichern</button>
+  <p id="saveMessage"></p>
+  <div id="allDiaries"></div>
+</div>
+
+<!-- NAV -->
 <button class="nav-btn" id="prevBtn" onclick="prevMember()">⬅️</button>
 <button class="nav-btn" id="homeBtn" onclick="goHome()">🏠</button>
 <button class="nav-btn" id="nextBtn" onclick="nextMember()">➡️</button>
@@ -138,6 +190,22 @@ const members = [
 
 let currentIndex = 0;
 
+/* Navigation */
+function hideAll() {
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("memberCard").style.display = "none";
+  document.getElementById("voteSection").style.display = "none";
+  document.getElementById("diarySection").style.display = "none";
+  document.getElementById("prevBtn").style.display = "none";
+  document.getElementById("nextBtn").style.display = "none";
+  document.getElementById("homeBtn").style.display = "none";
+}
+
+function goHome() {
+  hideAll();
+  document.getElementById("intro").style.display = "block";
+}
+
 /* TEAM */
 function startTeam() {
   hideAll();
@@ -150,9 +218,9 @@ function startTeam() {
 
 function showMember() {
   const m = members[currentIndex];
-  document.getElementById("memberImg").src = m.img;
-  document.getElementById("memberName").innerText = m.name;
-  document.getElementById("memberText").innerText = m.text;
+  memberImg.src = m.img;
+  memberName.innerText = m.name;
+  memberText.innerText = m.text;
 }
 
 function nextMember() {
@@ -166,24 +234,13 @@ function prevMember() {
 }
 
 /* SWIPE */
-let touchStartX = 0;
-let touchEndX = 0;
-
-const memberCard = document.getElementById("memberCard");
-
-memberCard.addEventListener("touchstart", e => {
-  touchStartX = e.changedTouches[0].screenX;
-});
-
+let startX = 0;
+memberCard.addEventListener("touchstart", e => startX = e.changedTouches[0].screenX);
 memberCard.addEventListener("touchend", e => {
-  touchEndX = e.changedTouches[0].screenX;
-  handleSwipe();
+  let endX = e.changedTouches[0].screenX;
+  if (endX < startX - 50) nextMember();
+  if (endX > startX + 50) prevMember();
 });
-
-function handleSwipe() {
-  if (touchEndX < touchStartX - 50) nextMember();
-  if (touchEndX > touchStartX + 50) prevMember();
-}
 
 /* VOTING */
 let votes = JSON.parse(localStorage.getItem("mvpVotes")) || {};
@@ -192,23 +249,20 @@ let hasVoted = localStorage.getItem("hasVoted") === "true";
 
 function showVoting() {
   hideAll();
-  document.getElementById("voteSection").style.display = "block";
-  document.getElementById("homeBtn").style.display = "block";
+  voteSection.style.display = "block";
+  homeBtn.style.display = "block";
   renderVoting();
 }
 
 function renderVoting() {
-  const container = document.getElementById("voteButtons");
-  container.innerHTML = "";
-
+  voteButtons.innerHTML = "";
   members.forEach(member => {
     const btn = document.createElement("button");
     btn.innerText = member.name;
     btn.disabled = hasVoted;
     btn.onclick = () => vote(member.name);
-    container.appendChild(btn);
+    voteButtons.appendChild(btn);
   });
-
   renderChart();
 }
 
@@ -222,55 +276,71 @@ function vote(name) {
 }
 
 function renderChart() {
-  const chart = document.getElementById("chart");
   chart.innerHTML = "";
   const maxVotes = Math.max(...Object.values(votes), 1);
-
   members.forEach(member => {
-    const wrapper = document.createElement("div");
-    wrapper.style.margin = "10px 0";
-    wrapper.style.textAlign = "left";
-
     const label = document.createElement("div");
     label.innerText = member.name + " (" + votes[member.name] + ")";
-    label.style.fontSize = "0.9em";
-
     const bar = document.createElement("div");
-    bar.style.height = "20px";
-    bar.style.width = "0%";
+    bar.style.height = "18px";
     bar.style.background = "white";
-    bar.style.borderRadius = "10px";
-    bar.style.transition = "width 0.8s ease";
-
-    wrapper.appendChild(label);
-    wrapper.appendChild(bar);
-    chart.appendChild(wrapper);
-
-    setTimeout(() => {
-      bar.style.width = (votes[member.name] / maxVotes * 100) + "%";
-    }, 100);
+    bar.style.width = (votes[member.name] / maxVotes * 100) + "%";
+    bar.style.marginBottom = "8px";
+    chart.appendChild(label);
+    chart.appendChild(bar);
   });
 }
 
 function adminReset() {
-  if (confirm("Alle Stimmen zurücksetzen?")) {
-    localStorage.clear();
+  if (confirm("Alle Stimmen löschen?")) {
+    localStorage.removeItem("mvpVotes");
+    localStorage.removeItem("hasVoted");
     location.reload();
   }
 }
 
-function goHome() {
+/* TAGEBUCH */
+function showDiary() {
   hideAll();
-  document.getElementById("intro").style.display = "block";
+  diarySection.style.display = "block";
+  homeBtn.style.display = "block";
+
+  diarySelect.innerHTML = "";
+  members.forEach(member => {
+    const option = document.createElement("option");
+    option.value = member.name;
+    option.text = member.name;
+    diarySelect.appendChild(option);
+  });
+
+  loadDiary();
+  renderAllDiaries();
 }
 
-function hideAll() {
-  document.getElementById("intro").style.display = "none";
-  document.getElementById("memberCard").style.display = "none";
-  document.getElementById("voteSection").style.display = "none";
-  document.getElementById("prevBtn").style.display = "none";
-  document.getElementById("nextBtn").style.display = "none";
-  document.getElementById("homeBtn").style.display = "none";
+function loadDiary() {
+  const name = diarySelect.value;
+  diaryText.value = localStorage.getItem("diary_" + name) || "";
+}
+
+function saveDiary() {
+  const name = diarySelect.value;
+  localStorage.setItem("diary_" + name, diaryText.value);
+  saveMessage.innerText = "Gespeichert ✅";
+  renderAllDiaries();
+  setTimeout(()=> saveMessage.innerText = "", 2000);
+}
+
+// Neue Funktion: zeigt alle Notizen als Karten
+function renderAllDiaries() {
+  const container = document.getElementById("allDiaries");
+  container.innerHTML = "";
+  members.forEach(member => {
+    const note = localStorage.getItem("diary_" + member.name) || "(noch keine Notiz)";
+    const div = document.createElement("div");
+    div.className = "diary-card";
+    div.innerHTML = `<strong>${member.name}:</strong> ${note.replace(/\n/g, "<br>")}`;
+    container.appendChild(div);
+  });
 }
 </script>
 
