@@ -23,7 +23,7 @@ h1 { font-size: 2em; margin-bottom: 10px; }
 .section { padding: 20px; }
 
 .main-btn {
-  margin-top: 20px;
+  margin: 10px;
   padding: 15px 25px;
   border-radius: 30px;
   border: none;
@@ -33,7 +33,7 @@ h1 { font-size: 2em; margin-bottom: 10px; }
   color: #203a43;
 }
 
-.member-card {
+.member-card, .vote-section {
   display: none;
   background: rgba(255,255,255,0.1);
   margin: 20px;
@@ -66,16 +66,6 @@ h1 { font-size: 2em; margin-bottom: 10px; }
 #nextBtn { right: 20px; }
 #homeBtn { left: 50%; transform: translateX(-50%); }
 
-footer { padding: 30px 20px; font-size: 1.1em; }
-
-/* MVP Voting */
-.vote-section {
-  padding: 30px 20px;
-  background: rgba(255,255,255,0.08);
-  margin: 20px;
-  border-radius: 20px;
-}
-
 .vote-section button {
   margin: 5px;
   padding: 10px 15px;
@@ -87,10 +77,10 @@ footer { padding: 30px 20px; font-size: 1.1em; }
   font-size: 0.9em;
 }
 
-#winner {
-  margin-top: 15px;
-  font-weight: bold;
-  font-size: 1.2em;
+.reset-btn {
+  margin-top: 20px;
+  background: crimson;
+  color: white;
 }
 </style>
 </head>
@@ -111,9 +101,11 @@ footer { padding: 30px 20px; font-size: 1.1em; }
   </p>
   <p>
     Dieses Jahr geht’s nach <strong>St. Anton</strong> –  
-    mit Vollgas neben und auf der Piste
+    mit Vollgas neben und auf der Piste 🍻🔥
   </p>
+
   <button class="main-btn" onclick="startTeam()">Das Team</button>
+  <button class="main-btn" onclick="showVoting()">🏆 MVP Voting</button>
 </div>
 
 <div class="member-card" id="memberCard">
@@ -122,23 +114,16 @@ footer { padding: 30px 20px; font-size: 1.1em; }
   <p id="memberText"></p>
 </div>
 
-<footer id="footer">
-  St. Anton 2026 –  
-  Das wird mehr als nur ein Urlaub.  
-  Das wird Geschichte. 🏔️🔥🍻
-</footer>
+<div class="vote-section" id="voteSection">
+  <h2>🏆 MVP – König von St. Anton</h2>
+  <div id="voteButtons"></div>
+  <div id="chart"></div>
+  <button class="reset-btn" onclick="adminReset()">🔒 Admin Reset</button>
+</div>
 
-<!-- Navigation -->
 <button class="nav-btn" id="prevBtn" onclick="prevMember()">⬅️ Skihaserl</button>
 <button class="nav-btn" id="homeBtn" onclick="goHome()">🏠 Home</button>
 <button class="nav-btn" id="nextBtn" onclick="nextMember()">Skihaserl ➡️</button>
-
-<!-- MVP Voting -->
-<div class="vote-section">
-  <h2>🏆 MVP Voting – König von St. Anton</h2>
-  <div id="voteButtons"></div>
-  <div id="winner"></div>
-</div>
 
 <script>
 const members = [
@@ -152,9 +137,9 @@ const members = [
 
 let currentIndex = 0;
 
+/* TEAM */
 function startTeam() {
-  document.getElementById("intro").style.display = "none";
-  document.getElementById("footer").style.display = "none";
+  hideAll();
   document.getElementById("memberCard").style.display = "block";
   document.getElementById("prevBtn").style.display = "block";
   document.getElementById("nextBtn").style.display = "block";
@@ -163,10 +148,10 @@ function startTeam() {
 }
 
 function showMember() {
-  const member = members[currentIndex];
-  document.getElementById("memberImg").src = member.img;
-  document.getElementById("memberName").innerText = member.name;
-  document.getElementById("memberText").innerText = member.text;
+  const m = members[currentIndex];
+  document.getElementById("memberImg").src = m.img;
+  document.getElementById("memberName").innerText = m.name;
+  document.getElementById("memberText").innerText = m.text;
 }
 
 function nextMember() {
@@ -179,48 +164,101 @@ function prevMember() {
   showMember();
 }
 
-function goHome() {
-  document.getElementById("intro").style.display = "block";
-  document.getElementById("footer").style.display = "block";
-  document.getElementById("memberCard").style.display = "none";
-  document.getElementById("prevBtn").style.display = "none";
-  document.getElementById("nextBtn").style.display = "none";
-  document.getElementById("homeBtn").style.display = "none";
-  currentIndex = 0;
-}
-
-/* MVP Voting */
+/* VOTING */
 let votes = JSON.parse(localStorage.getItem("mvpVotes")) || {};
+members.forEach(m => { if (!votes[m.name]) votes[m.name] = 0; });
 
-members.forEach(member => {
-  if (!votes[member.name]) votes[member.name] = 0;
-});
+let hasVoted = localStorage.getItem("hasVoted") === "true";
+
+function showVoting() {
+  hideAll();
+  document.getElementById("voteSection").style.display = "block";
+  document.getElementById("homeBtn").style.display = "block";
+  renderVoting();
+}
 
 function renderVoting() {
   const container = document.getElementById("voteButtons");
   container.innerHTML = "";
+
   members.forEach(member => {
     const btn = document.createElement("button");
-    btn.innerText = member.name + " (" + votes[member.name] + ")";
+    btn.innerText = member.name;
+    btn.disabled = hasVoted;
     btn.onclick = () => vote(member.name);
     container.appendChild(btn);
   });
-  showWinner();
+
+  renderChart();
 }
 
 function vote(name) {
+  if (hasVoted) return;
+
   votes[name]++;
+  hasVoted = true;
+
   localStorage.setItem("mvpVotes", JSON.stringify(votes));
+  localStorage.setItem("hasVoted", "true");
+
   renderVoting();
 }
 
-function showWinner() {
-  let winner = Object.keys(votes).reduce((a,b)=> votes[a]>votes[b]?a:b);
-  document.getElementById("winner").innerText =
-    "Aktueller MVP: " + winner + " 🏆🔥";
+function renderChart() {
+  const chart = document.getElementById("chart");
+  chart.innerHTML = "";
+
+  const maxVotes = Math.max(...Object.values(votes), 1);
+
+  members.forEach(member => {
+    const wrapper = document.createElement("div");
+    wrapper.style.margin = "10px 0";
+    wrapper.style.textAlign = "left";
+
+    const label = document.createElement("div");
+    label.innerText = member.name + " (" + votes[member.name] + ")";
+    label.style.fontSize = "0.9em";
+
+    const bar = document.createElement("div");
+    bar.style.height = "20px";
+    bar.style.width = "0%";
+    bar.style.background = "white";
+    bar.style.borderRadius = "10px";
+    bar.style.transition = "width 0.8s ease";
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(bar);
+    chart.appendChild(wrapper);
+
+    setTimeout(() => {
+      bar.style.width = (votes[member.name] / maxVotes * 100) + "%";
+    }, 100);
+  });
 }
 
-renderVoting();
+function adminReset() {
+  if (confirm("Willst du wirklich alle Stimmen zurücksetzen?")) {
+    localStorage.removeItem("mvpVotes");
+    localStorage.removeItem("hasVoted");
+    location.reload();
+  }
+}
+
+/* HOME */
+function goHome() {
+  hideAll();
+  document.getElementById("intro").style.display = "block";
+  currentIndex = 0;
+}
+
+function hideAll() {
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("memberCard").style.display = "none";
+  document.getElementById("voteSection").style.display = "none";
+  document.getElementById("prevBtn").style.display = "none";
+  document.getElementById("nextBtn").style.display = "none";
+  document.getElementById("homeBtn").style.display = "none";
+}
 </script>
 
 </body>
