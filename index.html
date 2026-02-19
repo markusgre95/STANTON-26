@@ -12,6 +12,7 @@ body {
   background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
   color: white;
   text-align: center;
+  overflow-x: hidden;
 }
 
 header { padding: 30px 20px; }
@@ -40,6 +41,7 @@ h1 { font-size: 2em; margin-bottom: 10px; }
   padding: 20px;
   border-radius: 20px;
   backdrop-filter: blur(8px);
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .member-card img {
@@ -74,7 +76,6 @@ h1 { font-size: 2em; margin-bottom: 10px; }
   cursor: pointer;
   background: white;
   color: #203a43;
-  font-size: 0.9em;
 }
 
 .reset-btn {
@@ -90,18 +91,17 @@ h1 { font-size: 2em; margin-bottom: 10px; }
 <header>
   <h1>Skiurlaub St. Anton ⛷️</h1>
   <div class="subtitle">
-    6 Skihaserl. Eine Mission. Unvergessliche Tage in St. Anton.
+    6 Skihaserl. Eine Mission. Unvergessliche Tage.
   </div>
 </header>
 
 <div class="section" id="intro">
   <p>
-    Seit mehreren Jahren fahren wir gemeinsam in den Skiurlaub –  
+    Seit mehreren Jahren fahren wir gemeinsam los –  
     Marius, Heinrich, Jonas, Nico, Markus und Newbie Jascha
   </p>
   <p>
-    Dieses Jahr geht’s nach <strong>St. Anton</strong> –  
-    mit Vollgas neben und auf der Piste 🍻🔥
+    Dieses Jahr Vollgas in <strong>St. Anton</strong> 🍻🔥
   </p>
 
   <button class="main-btn" onclick="startTeam()">Das Team</button>
@@ -112,6 +112,7 @@ h1 { font-size: 2em; margin-bottom: 10px; }
   <img id="memberImg" src="">
   <h2 id="memberName"></h2>
   <p id="memberText"></p>
+  <p style="font-size:0.8em; opacity:0.7;">⬅️ Swipe links / rechts ➡️</p>
 </div>
 
 <div class="vote-section" id="voteSection">
@@ -121,18 +122,18 @@ h1 { font-size: 2em; margin-bottom: 10px; }
   <button class="reset-btn" onclick="adminReset()">🔒 Admin Reset</button>
 </div>
 
-<button class="nav-btn" id="prevBtn" onclick="prevMember()">⬅️ Skihaserl</button>
-<button class="nav-btn" id="homeBtn" onclick="goHome()">🏠 Home</button>
-<button class="nav-btn" id="nextBtn" onclick="nextMember()">Skihaserl ➡️</button>
+<button class="nav-btn" id="prevBtn" onclick="prevMember()">⬅️</button>
+<button class="nav-btn" id="homeBtn" onclick="goHome()">🏠</button>
+<button class="nav-btn" id="nextBtn" onclick="nextMember()">➡️</button>
 
 <script>
 const members = [
-  { name: "Marius", img: "marius.jpg", text: "Maschine auf der Piste. Wahrscheinlich Erster am Lift." },
-  { name: "Heinrich", img: "heinrich.jpg", text: "Pistensau! Techniker mit Stil – fährt sauber, feiert wild." },
+  { name: "Marius", img: "marius.jpg", text: "Maschine auf der Piste." },
+  { name: "Heinrich", img: "heinrich.jpg", text: "Techniker mit Stil." },
   { name: "Jascha", img: "jascha.jpg", text: "Apres Ski Instructor!" },
-  { name: "Jonas", img: "jonas.jpg", text: "Skihaserl – egal ob Piste oder Party." },
-  { name: "Nico", img: "nico.jpg", text: "Apres Skiggy – Hauptsache Vollgas." },
-  { name: "Markus", img: "markus.jpg", text: "Pistenprinzessin" }
+  { name: "Jonas", img: "jonas.jpg", text: "Skihaserl auf & neben der Piste." },
+  { name: "Nico", img: "nico.jpg", text: "Hauptsache Vollgas." },
+  { name: "Markus", img: "markus.jpg", text: "Pistenprinzessin." }
 ];
 
 let currentIndex = 0;
@@ -164,10 +165,29 @@ function prevMember() {
   showMember();
 }
 
+/* SWIPE */
+let touchStartX = 0;
+let touchEndX = 0;
+
+const memberCard = document.getElementById("memberCard");
+
+memberCard.addEventListener("touchstart", e => {
+  touchStartX = e.changedTouches[0].screenX;
+});
+
+memberCard.addEventListener("touchend", e => {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+});
+
+function handleSwipe() {
+  if (touchEndX < touchStartX - 50) nextMember();
+  if (touchEndX > touchStartX + 50) prevMember();
+}
+
 /* VOTING */
 let votes = JSON.parse(localStorage.getItem("mvpVotes")) || {};
 members.forEach(m => { if (!votes[m.name]) votes[m.name] = 0; });
-
 let hasVoted = localStorage.getItem("hasVoted") === "true";
 
 function showVoting() {
@@ -194,20 +214,16 @@ function renderVoting() {
 
 function vote(name) {
   if (hasVoted) return;
-
   votes[name]++;
   hasVoted = true;
-
   localStorage.setItem("mvpVotes", JSON.stringify(votes));
   localStorage.setItem("hasVoted", "true");
-
   renderVoting();
 }
 
 function renderChart() {
   const chart = document.getElementById("chart");
   chart.innerHTML = "";
-
   const maxVotes = Math.max(...Object.values(votes), 1);
 
   members.forEach(member => {
@@ -237,18 +253,15 @@ function renderChart() {
 }
 
 function adminReset() {
-  if (confirm("Willst du wirklich alle Stimmen zurücksetzen?")) {
-    localStorage.removeItem("mvpVotes");
-    localStorage.removeItem("hasVoted");
+  if (confirm("Alle Stimmen zurücksetzen?")) {
+    localStorage.clear();
     location.reload();
   }
 }
 
-/* HOME */
 function goHome() {
   hideAll();
   document.getElementById("intro").style.display = "block";
-  currentIndex = 0;
 }
 
 function hideAll() {
