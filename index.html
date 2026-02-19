@@ -60,18 +60,30 @@ h1 {
   box-shadow: 0 5px 20px rgba(0,0,0,0.4);
 }
 
-.next-btn {
+.nav-btn {
   position: fixed;
   bottom: 20px;
-  right: 20px;
-  background: white;
-  color: #203a43;
   padding: 12px 18px;
   border-radius: 30px;
   border: none;
-  font-size: 0.95em;
+  font-size: 0.9em;
   cursor: pointer;
+  background: white;
+  color: #203a43;
   display: none;
+}
+
+#prevBtn {
+  left: 20px;
+}
+
+#nextBtn {
+  right: 20px;
+}
+
+#homeBtn {
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 footer {
@@ -103,7 +115,6 @@ footer {
   <button class="main-btn" onclick="startTeam()">Das Team</button>
 </div>
 
-<!-- Einzelne Person -->
 <div class="member-card" id="memberCard">
   <img id="memberImg" src="">
   <h2 id="memberName"></h2>
@@ -116,42 +127,19 @@ footer {
   Das wird Geschichte. 🏔️🔥🍻
 </footer>
 
-<button class="next-btn" id="nextBtn" onclick="nextMember()">
-  Nächster Skihaserl ➡️
-</button>
+<!-- Navigation Buttons -->
+<button class="nav-btn" id="prevBtn" onclick="prevMember()">⬅️ Vorheriger Skihaserl</button>
+<button class="nav-btn" id="homeBtn" onclick="goHome()">🏠 Home</button>
+<button class="nav-btn" id="nextBtn" onclick="nextMember()">Nächster Skihaserl ➡️</button>
 
 <script>
 const members = [
-  {
-    name: "Marius",
-    img: "marius.jpg",
-    text: "Maschine auf der Piste. Wahrscheinlich Erster am Lift."
-  },
-  {
-    name: "Heinrich",
-    img: "heinrich.jpg",
-    text: "Pistensau! Techniker mit Stil – fährt sauber, feiert wild."
-  },
-  {
-    name: "Jascha",
-    img: "jascha.jpg",
-    text: "Apres Ski Instructor!"
-  },
-  {
-    name: "Jonas",
-    img: "jonas.jpg",
-    text: "Skihaserl – egal ob Piste oder Party."
-  },
-  {
-    name: "Nico",
-    img: "nico.jpg",
-    text: "Apres Skiggy – Hauptsache Vollgas."
-  },
-  {
-    name: "Markus",
-    img: "markus.jpg",
-    text: "Pistenprinzessin"
-  }
+  { name: "Marius", img: "marius.jpg", text: "Maschine auf der Piste. Wahrscheinlich Erster am Lift." },
+  { name: "Heinrich", img: "heinrich.jpg", text: "Pistensau! Techniker mit Stil – fährt sauber, feiert wild." },
+  { name: "Jascha", img: "jascha.jpg", text: "Apres Ski Instructor!" },
+  { name: "Jonas", img: "jonas.jpg", text: "Skihaserl – egal ob Piste oder Party." },
+  { name: "Nico", img: "nico.jpg", text: "Apres Skiggy – Hauptsache Vollgas." },
+  { name: "Markus", img: "markus.jpg", text: "Pistenprinzessin" }
 ];
 
 let currentIndex = 0;
@@ -160,7 +148,11 @@ function startTeam() {
   document.getElementById("intro").style.display = "none";
   document.getElementById("footer").style.display = "none";
   document.getElementById("memberCard").style.display = "block";
+
+  document.getElementById("prevBtn").style.display = "block";
   document.getElementById("nextBtn").style.display = "block";
+  document.getElementById("homeBtn").style.display = "block";
+
   showMember();
 }
 
@@ -173,10 +165,26 @@ function showMember() {
 
 function nextMember() {
   currentIndex++;
-  if (currentIndex >= members.length) {
-    currentIndex = 0;
-  }
+  if (currentIndex >= members.length) currentIndex = 0;
   showMember();
+}
+
+function prevMember() {
+  currentIndex--;
+  if (currentIndex < 0) currentIndex = members.length - 1;
+  showMember();
+}
+
+function goHome() {
+  document.getElementById("intro").style.display = "block";
+  document.getElementById("footer").style.display = "block";
+  document.getElementById("memberCard").style.display = "none";
+
+  document.getElementById("prevBtn").style.display = "none";
+  document.getElementById("nextBtn").style.display = "none";
+  document.getElementById("homeBtn").style.display = "none";
+
+  currentIndex = 0;
 }
 </script>
 
