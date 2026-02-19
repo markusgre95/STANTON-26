@@ -32,7 +32,19 @@ h1 {
   padding: 20px;
 }
 
-.member {
+.main-btn {
+  margin-top: 20px;
+  padding: 15px 25px;
+  border-radius: 30px;
+  border: none;
+  font-size: 1.1em;
+  cursor: pointer;
+  background: white;
+  color: #203a43;
+}
+
+.member-card {
+  display: none;
   background: rgba(255,255,255,0.1);
   margin: 20px;
   padding: 20px;
@@ -40,7 +52,7 @@ h1 {
   backdrop-filter: blur(8px);
 }
 
-.member img {
+.member-card img {
   width: 100%;
   max-width: 250px;
   border-radius: 20px;
@@ -48,8 +60,18 @@ h1 {
   box-shadow: 0 5px 20px rgba(0,0,0,0.4);
 }
 
-.member h2 {
-  margin-bottom: 5px;
+.next-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  color: #203a43;
+  padding: 12px 18px;
+  border-radius: 30px;
+  border: none;
+  font-size: 0.95em;
+  cursor: pointer;
+  display: none;
 }
 
 footer {
@@ -68,60 +90,95 @@ footer {
   </div>
 </header>
 
-<div class="section">
+<div class="section" id="intro">
   <p>
     Seit mehreren Jahren fahren wir gemeinsam in den Skiurlaub –  
-    Marius, Heinrich, Jonas, Nico, Markus und Newbie Jascha 
+    Marius, Heinrich, Jonas, Nico, Markus und Newbie Jascha
   </p>
   <p>
     Dieses Jahr geht’s nach <strong>St. Anton</strong> –  
     mit Vollgas neben und auf der Piste
   </p>
+
+  <button class="main-btn" onclick="startTeam()">Das Team</button>
 </div>
 
-<!-- Mitglieder -->
-
-<div class="member">
-  <img src="marius.jpg" alt="Marius">
-  <h2>Marius</h2>
-  <p>Maschine auf der Piste. Wahrscheinlich Erster am Lift.</p>
+<!-- Einzelne Person -->
+<div class="member-card" id="memberCard">
+  <img id="memberImg" src="">
+  <h2 id="memberName"></h2>
+  <p id="memberText"></p>
 </div>
 
-<div class="member">
-  <img src="heinrich.jpg" alt="Heinrich">
-  <h2>Heinrich</h2>
-  <p>Pistensau! Techniker mit Stil – fährt sauber, feiert wild.</p>
-</div>
-
-<div class="member">
-  <img src="jascha.jpg" alt="Jascha">
-  <h2>Jascha</h2>
-  <p>Apres Ski Instructor! </p>
-</div>
-
-<div class="member">
-  <img src="jonas.jpg" alt="Jonas">
-  <h2>Jonas</h2>
-  <p>Skihaserl – egal ob Piste oder Party.</p>
-</div>
-
-<div class="member">
-  <img src="nico.jpg" alt="Nico">
-  <h2>Nico</h2>
-  <p>Apres Skiggy – Hauptsache Vollgas.</p>
-</div>
-
-<div class="member">
-  <img src="markus.jpg" alt="Markus">
-  <h2>Markus</h2>
-  <p>Pistenprinzessin</p>
-</div>
-
-<footer>
+<footer id="footer">
   St. Anton 2026 –  
   Das wird mehr als nur ein Urlaub.  
   Das wird Geschichte. 🏔️🔥🍻
 </footer>
+
+<button class="next-btn" id="nextBtn" onclick="nextMember()">
+  Nächster Skihaserl ➡️
+</button>
+
+<script>
+const members = [
+  {
+    name: "Marius",
+    img: "marius.jpg",
+    text: "Maschine auf der Piste. Wahrscheinlich Erster am Lift."
+  },
+  {
+    name: "Heinrich",
+    img: "heinrich.jpg",
+    text: "Pistensau! Techniker mit Stil – fährt sauber, feiert wild."
+  },
+  {
+    name: "Jascha",
+    img: "jascha.jpg",
+    text: "Apres Ski Instructor!"
+  },
+  {
+    name: "Jonas",
+    img: "jonas.jpg",
+    text: "Skihaserl – egal ob Piste oder Party."
+  },
+  {
+    name: "Nico",
+    img: "nico.jpg",
+    text: "Apres Skiggy – Hauptsache Vollgas."
+  },
+  {
+    name: "Markus",
+    img: "markus.jpg",
+    text: "Pistenprinzessin"
+  }
+];
+
+let currentIndex = 0;
+
+function startTeam() {
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("footer").style.display = "none";
+  document.getElementById("memberCard").style.display = "block";
+  document.getElementById("nextBtn").style.display = "block";
+  showMember();
+}
+
+function showMember() {
+  const member = members[currentIndex];
+  document.getElementById("memberImg").src = member.img;
+  document.getElementById("memberName").innerText = member.name;
+  document.getElementById("memberText").innerText = member.text;
+}
+
+function nextMember() {
+  currentIndex++;
+  if (currentIndex >= members.length) {
+    currentIndex = 0;
+  }
+  showMember();
+}
+</script>
 
 </body>
 </html>
