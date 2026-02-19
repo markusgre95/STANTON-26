@@ -14,23 +14,13 @@ body {
   text-align: center;
 }
 
-header {
-  padding: 30px 20px;
-}
+header { padding: 30px 20px; }
 
-h1 {
-  font-size: 2em;
-  margin-bottom: 10px;
-}
+h1 { font-size: 2em; margin-bottom: 10px; }
 
-.subtitle {
-  font-size: 1.1em;
-  opacity: 0.9;
-}
+.subtitle { font-size: 1.1em; opacity: 0.9; }
 
-.section {
-  padding: 20px;
-}
+.section { padding: 20px; }
 
 .main-btn {
   margin-top: 20px;
@@ -57,38 +47,50 @@ h1 {
   max-width: 250px;
   border-radius: 20px;
   margin-bottom: 15px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
 }
 
 .nav-btn {
   position: fixed;
   bottom: 20px;
-  padding: 12px 18px;
+  padding: 10px 15px;
   border-radius: 30px;
   border: none;
-  font-size: 0.9em;
+  font-size: 0.85em;
   cursor: pointer;
   background: white;
   color: #203a43;
   display: none;
 }
 
-#prevBtn {
-  left: 20px;
-}
+#prevBtn { left: 20px; }
+#nextBtn { right: 20px; }
+#homeBtn { left: 50%; transform: translateX(-50%); }
 
-#nextBtn {
-  right: 20px;
-}
+footer { padding: 30px 20px; font-size: 1.1em; }
 
-#homeBtn {
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-footer {
+/* MVP Voting */
+.vote-section {
   padding: 30px 20px;
-  font-size: 1.1em;
+  background: rgba(255,255,255,0.08);
+  margin: 20px;
+  border-radius: 20px;
+}
+
+.vote-section button {
+  margin: 5px;
+  padding: 10px 15px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  background: white;
+  color: #203a43;
+  font-size: 0.9em;
+}
+
+#winner {
+  margin-top: 15px;
+  font-weight: bold;
+  font-size: 1.2em;
 }
 </style>
 </head>
@@ -111,7 +113,6 @@ footer {
     Dieses Jahr geht’s nach <strong>St. Anton</strong> –  
     mit Vollgas neben und auf der Piste
   </p>
-
   <button class="main-btn" onclick="startTeam()">Das Team</button>
 </div>
 
@@ -127,10 +128,17 @@ footer {
   Das wird Geschichte. 🏔️🔥🍻
 </footer>
 
-<!-- Navigation Buttons -->
+<!-- Navigation -->
 <button class="nav-btn" id="prevBtn" onclick="prevMember()">⬅️ Skihaserl</button>
 <button class="nav-btn" id="homeBtn" onclick="goHome()">🏠 Home</button>
 <button class="nav-btn" id="nextBtn" onclick="nextMember()">Skihaserl ➡️</button>
+
+<!-- MVP Voting -->
+<div class="vote-section">
+  <h2>🏆 MVP Voting – König von St. Anton</h2>
+  <div id="voteButtons"></div>
+  <div id="winner"></div>
+</div>
 
 <script>
 const members = [
@@ -148,11 +156,9 @@ function startTeam() {
   document.getElementById("intro").style.display = "none";
   document.getElementById("footer").style.display = "none";
   document.getElementById("memberCard").style.display = "block";
-
   document.getElementById("prevBtn").style.display = "block";
   document.getElementById("nextBtn").style.display = "block";
   document.getElementById("homeBtn").style.display = "block";
-
   showMember();
 }
 
@@ -164,14 +170,12 @@ function showMember() {
 }
 
 function nextMember() {
-  currentIndex++;
-  if (currentIndex >= members.length) currentIndex = 0;
+  currentIndex = (currentIndex + 1) % members.length;
   showMember();
 }
 
 function prevMember() {
-  currentIndex--;
-  if (currentIndex < 0) currentIndex = members.length - 1;
+  currentIndex = (currentIndex - 1 + members.length) % members.length;
   showMember();
 }
 
@@ -179,13 +183,44 @@ function goHome() {
   document.getElementById("intro").style.display = "block";
   document.getElementById("footer").style.display = "block";
   document.getElementById("memberCard").style.display = "none";
-
   document.getElementById("prevBtn").style.display = "none";
   document.getElementById("nextBtn").style.display = "none";
   document.getElementById("homeBtn").style.display = "none";
-
   currentIndex = 0;
 }
+
+/* MVP Voting */
+let votes = JSON.parse(localStorage.getItem("mvpVotes")) || {};
+
+members.forEach(member => {
+  if (!votes[member.name]) votes[member.name] = 0;
+});
+
+function renderVoting() {
+  const container = document.getElementById("voteButtons");
+  container.innerHTML = "";
+  members.forEach(member => {
+    const btn = document.createElement("button");
+    btn.innerText = member.name + " (" + votes[member.name] + ")";
+    btn.onclick = () => vote(member.name);
+    container.appendChild(btn);
+  });
+  showWinner();
+}
+
+function vote(name) {
+  votes[name]++;
+  localStorage.setItem("mvpVotes", JSON.stringify(votes));
+  renderVoting();
+}
+
+function showWinner() {
+  let winner = Object.keys(votes).reduce((a,b)=> votes[a]>votes[b]?a:b);
+  document.getElementById("winner").innerText =
+    "Aktueller MVP: " + winner + " 🏆🔥";
+}
+
+renderVoting();
 </script>
 
 </body>
